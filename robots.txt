@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://manishmanwala.github.io/kewat-samaj-janshakti-party/sitemap.xml
