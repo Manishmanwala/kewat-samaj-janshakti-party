@@ -1,21 +1,6 @@
 // केवट समाज जनशक्ति पार्टी - मुख्य कंट्रोल इंजन (Firebase + PWA)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// नोट: इसकी चाबी अलग सुरक्षित फ़ोल्डर '01-config/firebase-key.js' से जुड़ रही है।
 
-// Firebase Configuration (ksjp-party-portal)
-const firebaseConfig = {
-  apiKey: "AIzaSyD-AzIA5g5X-ddUz1mKEDel3X83NMRZkco",
-  authDomain: "ksjp-party-portal.firebaseapp.com",
-  projectId: "ksjp-party-portal",
-  storageBucket: "ksjp-party-portal.firebasestorage.app",
-  messagingSenderId: "306712198819",
-  appId: "1:306712198819:web:b49ede0398be2a834fc916",
-  measurementId: "G-MD76KNGQ1D"
-};
-
-// Firebase एवं Firestore इनिशियलाइज़ करें
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 console.log("KSJP Portal & Firebase Connected - Coded by Manish");
 
 // ==========================================
@@ -119,14 +104,14 @@ document.getElementById("memberForm").addEventListener("submit", async (e) => {
   btn.textContent = "सेव हो रहा है...";
 
   try {
-    await addDoc(collection(db, "members"), {
+    await db.collection("members").add({
       name: document.getElementById("mName").value.trim(),
       phone: document.getElementById("mPhone").value.trim(),
       district: document.getElementById("mDistrict").value.trim(),
       role: document.getElementById("mRole").value,
       bio: document.getElementById("mBio").value.trim(),
       status: "pending",
-      createdAt: serverTimestamp()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     alert("✅ आपका सदस्यता आवेदन सफलतापूर्वक दर्ज हो गया है! शीघ्र ही एडमिन पैनल आपसे संपर्क करेगा।");
     document.getElementById("memberForm").reset();
@@ -201,13 +186,13 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
     const photoBase64 = await compressImage(photoFile);
     const ytLink = document.getElementById("pYoutube").value.trim();
 
-    await addDoc(collection(db, "posts"), {
+    await db.collection("posts").add({
       author: document.getElementById("pAuthor").value.trim(),
       tag: document.getElementById("pTag").value,
       text: document.getElementById("pText").value.trim(),
       youtubeUrl: ytLink,
       photoData: photoBase64,
-      createdAt: serverTimestamp()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
     alert("🎉 आपकी पोस्ट जनसंवाद मंच पर लाइव हो गई है!");
@@ -223,8 +208,7 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
 });
 
 // Firestore से लाइव पोस्ट लोड करें
-const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-onSnapshot(postsQuery, (snapshot) => {
+db.collection("posts").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
   if (!feedContainer) return;
   let postsHTML = "";
 
