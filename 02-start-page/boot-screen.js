@@ -1,11 +1,14 @@
 // 02-start-page/boot-screen.js
-// बिना किसी ग्लिच के पहले मिलीसेकंड से ही 100% सेंटर में लोडिंग स्क्रीन
+// पूरे 3 सेकंड तक स्थिर सेंटर लोडिंग स्क्रीन + इंटरनेट जाँच (बिना किसी झटके के)
 
 export async function startPublicBoot() {
   const bootEl = document.getElementById("boot-screen");
+  const portalEl = document.getElementById("portal-screen");
   if (!bootEl) return;
 
-  // पुरानी किसी भी CSS को रोकने के लिए सख्त स्टाइल लॉक
+  // मुख्य पोर्टल को पूरे 3 सेकंड तक पूरी तरह छिपाकर रखना
+  if (portalEl) portalEl.style.setProperty("display", "none", "important");
+
   if (!document.getElementById("ksjp-boot-lock-style")) {
     const st = document.createElement("style");
     st.id = "ksjp-boot-lock-style";
@@ -23,10 +26,7 @@ export async function startPublicBoot() {
       }
       #boot-screen {
         position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
+        inset: 0 !important;
         width: 100vw !important;
         height: 100dvh !important;
         margin: 0 !important;
@@ -37,7 +37,7 @@ export async function startPublicBoot() {
         justify-content: center !important;
         text-align: center !important;
         background: linear-gradient(180deg, #fff7ed 0%, #ffffff 50%, #f0fdf4 100%) !important;
-        z-index: 99999 !important;
+        z-index: 999999 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
       }
     `;
@@ -57,9 +57,8 @@ export async function startPublicBoot() {
       एकजुट समाज, सशक्त नेतृत्व
     </div>
 
-    <!-- लोडिंग बार -->
     <div style="width:220px;height:6px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:0 auto 12px auto;">
-      <div id="boot-progress" style="width:0%;height:100%;background:linear-gradient(90deg,#ff6b00,#16a34a);transition:width 2.8s ease-out;"></div>
+      <div id="boot-progress" style="width:0%;height:100%;background:linear-gradient(90deg,#ff6b00,#16a34a);transition:width 2.9s linear;"></div>
     </div>
 
     <div id="boot-status-text" style="font-size:12.5px;font-weight:700;color:#475569;text-align:center;width:100%;">
@@ -87,15 +86,16 @@ export async function startPublicBoot() {
     }
   } catch (e) {}
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     const bar = document.getElementById("boot-progress");
     if (bar) bar.style.width = "100%";
-  });
+  }, 50);
 
   const statusEl = document.getElementById("boot-status-text");
   const retryBtn = document.getElementById("boot-retry-btn");
   retryBtn.onclick = () => location.reload();
 
+  // पूरे 3 सेकंड तक यहीं रोक कर रखना
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
   if (!navigator.onLine) {
@@ -109,7 +109,9 @@ export async function startPublicBoot() {
     const portalMod = await import("../03-ui-layout/public-portal.js");
     if (portalMod && portalMod.mountPublicPortal) {
       await portalMod.mountPublicPortal();
-      bootEl.style.display = "none";
+      // लोडिंग स्क्रीन को पूरी तरह हटाकर मुख्य पोर्टल दिखाना
+      bootEl.style.setProperty("display", "none", "important");
+      if (portalEl) portalEl.style.setProperty("display", "block", "important");
     }
   } catch (err) {
     statusEl.style.color = "#dc2626";
