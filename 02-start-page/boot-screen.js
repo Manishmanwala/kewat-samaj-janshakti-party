@@ -1,76 +1,70 @@
 // 02-start-page/boot-screen.js
-// पूरे 3 सेकंड तक स्थिर सेंटर लोडिंग स्क्रीन + इंटरनेट जाँच (बिना किसी झटके के)
+// सीधे मोबाइल से असली स्क्रीन माप (window.innerWidth / innerHeight) पूछकर 100% सटीक सेंटरिंग
 
 export async function startPublicBoot() {
   const bootEl = document.getElementById("boot-screen");
   const portalEl = document.getElementById("portal-screen");
   if (!bootEl) return;
 
-  // मुख्य पोर्टल को पूरे 3 सेकंड तक पूरी तरह छिपाकर रखना
   if (portalEl) portalEl.style.setProperty("display", "none", "important");
 
-  if (!document.getElementById("ksjp-boot-lock-style")) {
-    const st = document.createElement("style");
-    st.id = "ksjp-boot-lock-style";
-    st.textContent = `
-      html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100vw !important;
-        height: 100dvh !important;
-        overflow: hidden !important;
-        background: #ffffff !important;
-      }
-      #boot-screen, #boot-screen * {
-        box-sizing: border-box !important;
-      }
-      #boot-screen {
-        position: fixed !important;
-        inset: 0 !important;
-        width: 100vw !important;
-        height: 100dvh !important;
-        margin: 0 !important;
-        padding: 24px !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important;
-        background: linear-gradient(180deg, #fff7ed 0%, #ffffff 50%, #f0fdf4 100%) !important;
-        z-index: 999999 !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-      }
+  // मोबाइल से असली चौड़ाई और ऊँचाई पूछकर तुरंत लागू करने वाला फ़ंक्शन
+  const syncDeviceScreenSize = () => {
+    const w = window.innerWidth || document.documentElement.clientWidth;
+    const h = window.innerHeight || document.documentElement.clientHeight;
+    bootEl.style.cssText = `
+      position: fixed !important;
+      top: 0px !important;
+      left: 0px !important;
+      width: ${w}px !important;
+      height: ${h}px !important;
+      margin: 0px !important;
+      padding: 20px !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      background: linear-gradient(180deg, #fff7ed 0%, #ffffff 50%, #f0fdf4 100%) !important;
+      z-index: 999999 !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     `;
-    document.head.appendChild(st);
-  }
+  };
+
+  syncDeviceScreenSize();
+  window.addEventListener("resize", syncDeviceScreenSize);
+
+  const deviceW = window.innerWidth || 360;
+  const logoSize = Math.round(Math.min(deviceW * 0.24, 96));
+  const barWidth = Math.round(Math.min(deviceW * 0.62, 230));
 
   bootEl.innerHTML = `
-    <div style="width:92px;height:92px;border-radius:50%;background:#ffffff;border:3.5px solid #ff6b00;box-shadow:0 0 0 3.5px #16a34a, 0 10px 25px rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto 18px auto;flex-shrink:0;">
+    <div style="width:${logoSize}px;height:${logoSize}px;border-radius:50%;background:#ffffff;border:3.5px solid #ff6b00;box-shadow:0 0 0 3.5px #16a34a, 0 10px 25px rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:18px;flex-shrink:0;">
       <img id="boot-party-logo" src="" alt="KSJP" style="width:100%;height:100%;object-fit:cover;display:none;" />
       <span id="boot-logo-fallback" style="font-size:24px;font-weight:900;color:#ff6b00;">KSJP</span>
     </div>
 
-    <div style="font-size:20px;font-weight:900;color:#0f172a;text-align:center;margin:0 0 4px 0;width:100%;">
+    <div style="font-size:20px;font-weight:900;color:#0f172a;margin-bottom:4px;">
       केवट समाज जनशक्ति पार्टी
     </div>
-    <div style="font-size:12.5px;font-weight:700;color:#16a34a;text-align:center;margin:0 0 26px 0;width:100%;">
+    <div style="font-size:12.5px;font-weight:700;color:#16a34a;margin-bottom:24px;">
       एकजुट समाज, सशक्त नेतृत्व
     </div>
 
-    <div style="width:220px;height:6px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:0 auto 12px auto;">
+    <div style="width:${barWidth}px;height:6px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-bottom:12px;">
       <div id="boot-progress" style="width:0%;height:100%;background:linear-gradient(90deg,#ff6b00,#16a34a);transition:width 2.9s linear;"></div>
     </div>
 
-    <div id="boot-status-text" style="font-size:12.5px;font-weight:700;color:#475569;text-align:center;width:100%;">
+    <div id="boot-status-text" style="font-size:12.5px;font-weight:700;color:#475569;">
       आधिकारिक मंच लोड हो रहा है... कृपया 3 सेकंड रुकें
     </div>
 
-    <button id="boot-retry-btn" style="display:none;margin:16px auto 0 auto;padding:10px 22px;background:#ff6b00;color:#fff;border:none;border-radius:999px;font-weight:800;font-size:13px;cursor:pointer;">
+    <button id="boot-retry-btn" style="display:none;margin-top:16px;padding:10px 22px;background:#ff6b00;color:#fff;border:none;border-radius:999px;font-weight:800;font-size:13px;cursor:pointer;">
       पुनः प्रयास करें 🔄
     </button>
   `;
 
-  // लोगो लोड करना
   try {
     const res = await fetch("https://api.github.com/repos/Manishmanwala/ksjp-control-room/contents/");
     if (res.ok) {
@@ -95,7 +89,6 @@ export async function startPublicBoot() {
   const retryBtn = document.getElementById("boot-retry-btn");
   retryBtn.onclick = () => location.reload();
 
-  // पूरे 3 सेकंड तक यहीं रोक कर रखना
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
   if (!navigator.onLine) {
@@ -109,7 +102,7 @@ export async function startPublicBoot() {
     const portalMod = await import("../03-ui-layout/public-portal.js");
     if (portalMod && portalMod.mountPublicPortal) {
       await portalMod.mountPublicPortal();
-      // लोडिंग स्क्रीन को पूरी तरह हटाकर मुख्य पोर्टल दिखाना
+      window.removeEventListener("resize", syncDeviceScreenSize);
       bootEl.style.setProperty("display", "none", "important");
       if (portalEl) portalEl.style.setProperty("display", "block", "important");
     }
